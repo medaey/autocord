@@ -68,7 +68,7 @@ fi
 
 local_install() {
 echo -e "Téléchargement de Discord..."
-curl -L "${TAR_URL}" --progress-bar -o "${TEMP_DIR}"
+curl -L "${TAR_URL}" --progress-bar -o "${TEMP_DIR}"/discord.tar.gz
 echo -e "Extraction de Discord..."
 #tar -xzf "${TEMP_DIR}/discord.tar.gz" -C "${TEMP_DIR}"
 pv "${TEMP_DIR}/discord.tar.gz" | tar -xzf -C "${TEMP_DIR}" -
