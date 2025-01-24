@@ -50,6 +50,7 @@ if [[ -f "${JSON_SETTINGS}" ]]; then
         sed -i '1a\  "SKIP_HOST_UPDATE": true,' "${JSON_SETTINGS}"
     fi
 else
+    mkdir "${HOME}/.config/discord/"
     echo '{
   "SKIP_HOST_UPDATE": true,
   "IS_MAXIMIZED": false,
@@ -71,7 +72,7 @@ echo -e "Téléchargement de Discord..."
 curl -L "${TAR_URL}" --progress-bar -o "${TEMP_DIR}"/discord.tar.gz
 echo -e "Extraction de Discord..."
 #tar -xzf "${TEMP_DIR}/discord.tar.gz" -C "${TEMP_DIR}"
-pv "${TEMP_DIR}/discord.tar.gz" | tar -xzf -
+pv "${TEMP_DIR}/discord.tar.gz" | tar -xzf - -C "${TEMP_DIR}"
 
 if [[ -d "${INSTALL_DIR}" ]]; then
     rm -r "${INSTALL_DIR}"
