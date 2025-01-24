@@ -114,7 +114,7 @@ rm -rf "${TEMP_DIR}"
 
 # Afficher un message de succès
 echo -e "Discord a été installé avec succès dans l'espace utilisateur."
-echo -e "Exécutez-le avec : discord"
+. "${HOME}/.bashrc"
 }
 
 local_uninstall() {
