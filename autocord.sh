@@ -44,7 +44,7 @@ fi
 }
 
 local_Skip_host_update() {
-SEARCH_STRING='"SKIP_HOST_UPDATE": true,'
+local SEARCH_STRING='"SKIP_HOST_UPDATE": true,'
 if [[ -f "${JSON_SETTINGS}" ]]; then
     if grep -q "${SEARCH_STRING}" "${JSON_SETTINGS}"; then
         sed -i '1a\  "SKIP_HOST_UPDATE": true,' "${JSON_SETTINGS}"
@@ -114,13 +114,15 @@ fi
 rm -rf "${TEMP_DIR}"
 
 # Afficher un message de succès
-echo -e "Discord a été installé avec succès dans l'espace utilisateur."
+echo -e "Discord a été installé avec succès dans l'espace utilisateur"
 . "${HOME}/.bashrc"
 }
 
 local_uninstall() {
-rm "${INSTALL_DIR}"/Discord
-rm -r "${HOME}"/.local/opt/discord
+echo -e "Désinstallation de Discord et Autocord..."
+rm "${BIN_DIR}"/discord
+rm "${BIN_DIR}"/autocord
+rm -r "${INSTALL_DIR}"
 rm "${DESKTOP_FILE}"
 }
 
@@ -133,7 +135,7 @@ if [[ -f "${BIN_DIR}/discord" ]]; then
     else
         echo -e "Version Actuellement installée à jour"
         if command -v /usr/bin/notify-send > /dev/null ; then
-            notify-send --app-name "autocord" "Discord est à jour !"
+            notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
         fi
         exit 0
     fi
@@ -157,10 +159,11 @@ fi
 
 title() {
 echo -e "${violet}
- ▗▄▖ ▗▖ ▗▖▗▄▄▄▖▗▄▖  ▗▄▄▖▄▄▄   ▄▄▄ ▐▌
-▐▌ ▐▌▐▌ ▐▌  █ ▐▌ ▐▌▐▌  █   █ █    ▐▌
-▐▛▀▜▌▐▌ ▐▌  █ ▐▌ ▐▌▐▌  ▀▄▄▄▀ █ ▗▞▀▜▌
-▐▌ ▐▌▝▚▄▞▘  █ ▝▚▄▞▘▝▚▄▄▖       ▝▚▄▟
+    ___   __  ____________                      __
+   /   | / / / /_  __/ __ \_________  _________/ /
+  / /| |/ / / / / / / / / / ___/ __ \/ ___/ __  /
+ / ___ / /_/ / / / / /_/ / /__/ /_/ / /  / /_/ /
+/_/  |_\____/ /_/  \____/\___/\____/_/   \____/
 ${nc}"
 }
 
@@ -169,29 +172,41 @@ echo -e "
 OPTIONS :
 
     install     : Installe discord en userspace
-    uninstall   : Désinstalle discord en userspace
+    uninstall   : Désinstalle discord et autocord
 "
 }
 
+test_internet() {
+local MAX_TIME=600
+local START_TIME=$(date +%s)
+
 while ! check_internet; do
+    ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
+
+    if [ $ELAPSED_TIME -ge $MAX_TIME ]; then
+        echo "Temps écoulé de 10 minutes sans connexion Internet. Arrêt du script."
+        exit 1
+    fi
     echo "Pas de connexion Internet. Nouvelle tentative dans 5 secondes..."
-    sleep 5
+    sleep 30
 done
+}
 
 case "${1}" in
 install)
+test_internet
 check_depends
 vars
 title
 check_root
 check_version
 if command -v /usr/bin/notify-send > /dev/null ; then
-    notify-send --app-name "autocord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
+    notify-send --app-name "AUTOcord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
 fi
 local_install
 local_Skip_host_update
 if command -v /usr/bin/notify-send > /dev/null ; then
-    notify-send --app-name "autocord" "Installation de Discord ${LATEST_VERSION} terminée !"
+    notify-send --app-name "AUTOcord" "Installation de Discord ${LATEST_VERSION} terminée !"
 fi
 echo -e "Installation Terminée"
 ;;
