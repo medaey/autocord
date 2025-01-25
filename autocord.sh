@@ -132,7 +132,10 @@ if [[ -f "${BIN_DIR}/discord" ]]; then
         print_info
     else
         echo -e "Version Actuellement installée à jour"
-    exit 0
+        if command -v /usr/bin/notify-send > /dev/null ; then
+            notify-send --app-name "autocord" "Discord est à jour !"
+        fi
+        exit 0
     fi
 fi
 }
@@ -179,16 +182,24 @@ case "${1}" in
 install)
 check_depends
 vars
+title
 check_root
 check_version
+if command -v /usr/bin/notify-send > /dev/null ; then
+    notify-send --app-name "autocord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
+fi
 local_install
 local_Skip_host_update
-echo -e "Terminé"
+if command -v /usr/bin/notify-send > /dev/null ; then
+    notify-send --app-name "autocord" "Installation de Discord ${LATEST_VERSION} terminée !"
+fi
+echo -e "Installation Terminée"
 ;;
 uninstall)
 vars
+title
 local_uninstall
-echo -e "Terminé"
+echo -e "Désinstallation Terminé"
 ;;
 --help | *)
 check_depends
