@@ -1,38 +1,37 @@
 #!/bin/bash
-# Prepare environment for Autocord
-# - Ensure ~/.local/bin exists and is in the PATH
-# - Copy necessary files to appropriate locations
-# - Set executable permissions for the script
-# - Reload shell configuration and execute installation
+violet="\033[38;5;63m"
 
-# Create ~/.local/bin if it doesn't exist
-mkdir -p "${HOME}/.local/bin"
+title() {
+echo -e "${violet}
+    ___   __  ____________                      __
+   /   | / / / /_  __/ __ \_________  _________/ /
+  / /| |/ / / / / / / / / / ___/ __ \/ ___/ __  /
+ / ___ / /_/ / / / / /_/ / /__/ /_/ / /  / /_/ /
+/_/  |_\____/ /_/  \____/\___/\____/_/   \____/
+${nc}"
+}
 
-# Add ~/.local/bin to PATH permanently if it's not already there
-if ! grep -q "$HOME/.local/bin" <<< "$PATH"; then
-    if [ -n "$BASH_VERSION" ]; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "${HOME}/.bashrc"
-    elif [ -n "$ZSH_VERSION" ]; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "${HOME}/.zshrc"
-    fi
+install() {
+echo -e "${violet}Installation du binaire${nc}"
+if [[ ! -d "${HOME}"/.local/bin ]]; then
+    mkdir -p "${HOME}"/.local/bin
 fi
-
-# Refresh PATH for the current session (if already open)
-export PATH="${HOME}/.local/bin:$PATH"
-
-# Copy scripts and configuration files
 cp autocord.sh "${HOME}"/.local/bin/autocord
-cp autocord-autostart.desktop "${HOME}"/.config/autostart/autocord-autostart.desktop
-
-# Make the main script executable
 chmod +x "${HOME}"/.local/bin/autocord
 
-# Reload shell configuration to apply changes
-if [ -n "$BASH_VERSION" ]; then
-    . "${HOME}/.bashrc"
-elif [ -n "$ZSH_VERSION" ]; then
-    . "${HOME}/.zshrc"
+echo -e "${violet}Installation du service de mise à jour${nc}"
+if [[ ! -d "${HOME}"/.config/autostart ]]; then
+    mkdir -p "${HOME}"/.config/autostart/
 fi
+cp autocord-autostart.desktop "${HOME}"/.config/autostart/autocord-autostart.desktop
 
-# Run the Autocord installation process
-autocord install
+echo -e "${violet}Mise à jour du path${nc}"
+. "${HOME}"/.bashrc
+
+echo -e "${violet}Installation de Discord via Autocord${nc}"
+bash "$HOME"/.local/bin/autocord install
+
+}
+
+title
+install
