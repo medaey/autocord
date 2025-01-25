@@ -35,4 +35,3 @@ bash "$HOME"/.local/bin/autocord install
 
 title
 install
-
