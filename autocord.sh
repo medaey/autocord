@@ -19,7 +19,7 @@ DESKTOP_FILE="$HOME/.local/share/applications/discord.desktop"
 }
 
 check_depends() {
-deps=(jq curl tar gzip pv)
+deps=("jq" "curl" "tar" "gzip" "pv" "notify-send")
 for _f in ${deps[@]} ; do
     if ! command -v /usr/bin/${_f} > /dev/null ; then
         echo -e "${red}Dépendances manquantes :${nc} ${_f}"
@@ -133,7 +133,7 @@ if [[ -f "${BIN_DIR}/discord" ]]; then
     if [[ "${INSTALLED_VER}" != "${LATEST_VERSION}" ]]; then
         print_info
     else
-        echo -e "Version Actuellement installée à jour"
+        echo -e "Discord est déjà à jour !"
         if command -v /usr/bin/notify-send > /dev/null ; then
             notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
         fi

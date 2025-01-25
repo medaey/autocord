@@ -29,7 +29,7 @@ echo -e "${violet}Mise à jour du path${nc}"
 . "${HOME}"/.bashrc
 
 echo -e "${violet}Installation de Discord via Autocord${nc}"
-autocord install &
+bash "$HOME"/.local/bin/autocord install
 
 }
 
