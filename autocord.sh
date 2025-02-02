@@ -36,10 +36,10 @@ fi
 
 print_info() {
 if [[ -n "$LATEST_VERSION" ]]; then
-    echo -e "Version actuelle installée  : ${INSTALLED_VER}"
-    echo -e "Dernière version de Discord : ${LATEST_VERSION}"
-    echo -e "URL du fichier .deb    : ${DEB_URL}"
-    echo -e "URL du fichier .tar.gz : ${TAR_URL}"
+    echo -e "${blue}Version actuelle installée  : ${orange}${INSTALLED_VER}${nc}"
+    echo -e "${blue}Dernière version de Discord : ${orange}${LATEST_VERSION}${nc}"
+    #echo -e "URL du fichier .deb    : ${DEB_URL}"
+    #echo -e "URL du fichier .tar.gz : ${TAR_URL}"
 fi
 }
 
@@ -68,9 +68,9 @@ fi
 }
 
 local_install() {
-echo -e "Téléchargement de Discord..."
+echo -e "${blue}Téléchargement de Discord...${nc}"
 curl -L "${TAR_URL}" --progress-bar -o "${TEMP_DIR}"/discord.tar.gz
-echo -e "Extraction de Discord..."
+echo -e "${blue}Extraction de Discord...${nc}"
 #tar -xzf "${TEMP_DIR}/discord.tar.gz" -C "${TEMP_DIR}"
 pv "${TEMP_DIR}/discord.tar.gz" | tar -xzf - -C "${TEMP_DIR}"
 
@@ -82,7 +82,7 @@ mv "${TEMP_DIR}/Discord"/* "${INSTALL_DIR}"
 
 # Créer un symlink pour l'exécutable
 
-echo -e "Création du lien symbolique pour l'exécutable..."
+echo -e "${blue}Création du lien symbolique pour l'exécutable...${nc}"
 if [[ ! -f "${BIN_DIR}/discord" ]]; then
     mkdir -p "${BIN_DIR}"
     ln -sf "${INSTALL_DIR}/Discord" "${BIN_DIR}/discord"
@@ -114,12 +114,12 @@ fi
 rm -rf "${TEMP_DIR}"
 
 # Afficher un message de succès
-echo -e "Discord a été installé avec succès dans l'espace utilisateur"
+echo -e "${green}Discord a été installé avec succès dans l'espace utilisateur${nc}"
 . "${HOME}/.bashrc"
 }
 
 local_uninstall() {
-echo -e "Désinstallation de Discord et Autocord..."
+echo -e "${orange}Désinstallation de Discord et Autocord...${nc}"
 rm "${BIN_DIR}"/discord
 rm "${BIN_DIR}"/autocord
 rm -r "${INSTALL_DIR}"
@@ -184,10 +184,10 @@ while ! check_internet; do
     ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
 
     if [ $ELAPSED_TIME -ge $MAX_TIME ]; then
-        echo "Temps écoulé de 10 minutes sans connexion Internet. Arrêt du script."
+        echo "${red}Temps écoulé de 10 minutes sans connexion Internet. Arrêt du script.${nc}"
         exit 1
     fi
-    echo "Pas de connexion Internet. Nouvelle tentative dans 5 secondes..."
+    echo "${orange}Pas de connexion Internet. Nouvelle tentative dans 5 secondes...${nc}"
     sleep 30
 done
 }
@@ -208,13 +208,13 @@ local_Skip_host_update
 if command -v /usr/bin/notify-send > /dev/null ; then
     notify-send --app-name "AUTOcord" "Installation de Discord ${LATEST_VERSION} terminée !"
 fi
-echo -e "Installation Terminée"
+echo -e "${green}Installation Terminée${nc}"
 ;;
 uninstall)
 vars
 title
 local_uninstall
-echo -e "Désinstallation Terminé"
+echo -e "${green}Désinstallation Terminé${nc}"
 ;;
 --help | *)
 check_depends

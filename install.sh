@@ -1,5 +1,10 @@
 #!/bin/bash
 violet="\033[38;5;63m"
+blue="\033[0;34m"
+red="\033[0;31m"
+orange="\033[0;33m"
+green="\033[0;32m"
+nc="\033[0m"
 
 title() {
 echo -e "${violet}
@@ -21,27 +26,27 @@ if ! grep -q "$HOME/.local/bin" <<< "$PATH"; then
     fi
 fi
 
-echo -e "${violet}Installation du binaire${nc}"
+echo -e "${blue}Installation du binaire${nc}"
 if [[ ! -d "${HOME}"/.local/bin ]]; then
     mkdir -p "${HOME}"/.local/bin
 fi
 cp "autocord.sh" "${HOME}"/.local/bin/autocord
 chmod +x "${HOME}"/.local/bin/autocord
 
-echo -e "${violet}Installation du service de mise à jour${nc}"
+echo -e "${blue}Installation du service de mise à jour${nc}"
 if [[ ! -d "${HOME}"/.config/autostart ]]; then
     mkdir -p "${HOME}"/.config/autostart
 fi
 cp "autocord-autostart.desktop" "${HOME}"/.config/autostart/autocord-autostart.desktop
 
-echo -e "${violet}Mise à jour du path${nc}"
+echo -e "${blue}Mise à jour du path${nc}"
 if [ -n "$BASH_VERSION" ]; then
     . "${HOME}/.bashrc"
 elif [ -n "$ZSH_VERSION" ]; then
     . "${HOME}/.zshrc"
 fi
 
-echo -e "${violet}Installation de Discord via Autocord${nc}"
+echo -e "${green}Installation de Discord via Autocord${nc}"
 bash "$HOME"/.local/bin/autocord install
 
 }
