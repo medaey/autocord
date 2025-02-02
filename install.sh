@@ -46,9 +46,9 @@ elif [ -n "$ZSH_VERSION" ]; then
     . "${HOME}/.zshrc"
 fi
 
-echo -e "${green}Installation de Discord via Autocord${nc}"
+echo -e "${blue}Installation de Discord via Autocord${nc}"
 bash "$HOME"/.local/bin/autocord install
-
+echo -e "${orange}Si vous avez des emoji manquantes sur votre DE, copiez le fichier local.conf dans ~/.config/fontsconfig et redémarrez la machine${nc}"
 }
 
 title
