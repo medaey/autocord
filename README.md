@@ -16,6 +16,11 @@ To install or update Discord, simply run:
 autocord install
 ```
 
+To uninstall Discord AND Autocord, simply run:
+```bash
+autocord uninstall
+```
+
 ## Prerequisites
 Autocord requires the following tools to work correctly:
 
