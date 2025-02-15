@@ -48,7 +48,7 @@ fi
 
 echo -e "${blue}Installation de Discord via Autocord${nc}"
 bash "$HOME"/.local/bin/autocord install
-echo -e "${orange}Si vous avez des emoji manquantes sur votre DE, copiez le fichier local.conf dans ~/.config/fontsconfig et redémarrez la machine${nc}"
+echo -e "${orange}Si vous avez des emoji manquantes sur votre DE, copiez le fichier fontconfig/local.conf dans ~/.config/fontconfig et déconnectez vous${nc}"
 }
 
 title
