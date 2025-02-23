@@ -51,5 +51,10 @@ bash "$HOME"/.local/bin/autocord install
 echo -e "${orange}Si vous avez des emoji manquantes sur votre DE, copiez le fichier fontconfig/local.conf dans ~/.config/fontconfig et déconnectez vous${nc}"
 }
 
+if [[ $EUID -eq 0 ]]; then
+    echo -e "${red}NE PAS LANCER LE SCRIPT EN TANT QUE ROOT${nc}"
+    exit 1
+fi
+
 title
 install
