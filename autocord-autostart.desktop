@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Exec=/bin/bash -c "${HOME}/.local/bin/autocord install"
+Exec=/bin/bash -c "~/.local/bin/autocord install"
 Hidden=false
 X-GNOME-Autostart-Delay=0
 X-GNOME-Autostart-enabled=true
