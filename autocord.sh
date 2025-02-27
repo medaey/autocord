@@ -193,34 +193,46 @@ done
 }
 
 case "${1}" in
-install)
-test_internet
-check_depends
-vars
-title
-check_root
-check_version
-if command -v /usr/bin/notify-send > /dev/null ; then
-    notify-send --app-name "AUTOcord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
-fi
-local_install
-local_Skip_host_update
-if command -v /usr/bin/notify-send > /dev/null ; then
-    notify-send --app-name "AUTOcord" "Installation de Discord ${LATEST_VERSION} terminée !"
-fi
-echo -e "Installation Terminée"
-;;
-uninstall)
-vars
-title
-local_uninstall
-echo -e "Désinstallation Terminé"
-;;
---help | *)
-check_depends
-vars
-title
-print_info
-help
-;;
+    install)
+        # Vérifications et initialisation
+        test_internet
+        check_depends
+        vars
+        title
+        check_root
+        check_version
+
+        # Notification de début d'installation
+        if command -v /usr/bin/notify-send > /dev/null; then
+            notify-send --app-name "AUTOcord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
+        fi
+
+        # Installation
+        local_install
+        local_Skip_host_update
+
+        # Notification de fin d'installation
+        if command -v /usr/bin/notify-send > /dev/null; then
+            notify-send --app-name "AUTOcord" "Installation de Discord ${LATEST_VERSION} terminée !"
+        fi
+
+        echo -e "Installation Terminée"
+        ;;
+
+    uninstall)
+        # Désinstallation
+        vars
+        title
+        local_uninstall
+        echo -e "Désinstallation Terminée"
+        ;;
+
+    --help | *)
+        # Affichage de l'aide
+        check_depends
+        vars
+        title
+        print_info
+        help
+        ;;
 esac
