@@ -34,15 +34,6 @@ fi
 
 }
 
-print_info() {
-if [[ -n "$LATEST_VERSION" ]]; then
-    echo -e "Version actuelle installée  : ${INSTALLED_VER}"
-    echo -e "Dernière version de Discord : ${LATEST_VERSION}"
-    echo -e "URL du fichier .deb    : ${DEB_URL}"
-    echo -e "URL du fichier .tar.gz : ${TAR_URL}"
-fi
-}
-
 local_Skip_host_update() {
 local SEARCH_STRING='"SKIP_HOST_UPDATE": true,'
 if [[ -f "${JSON_SETTINGS}" ]]; then
@@ -128,18 +119,33 @@ rm "${DESKTOP_FILE}"
 
 check_version() {
 if [[ -f "${BIN_DIR}/discord" ]]; then
-    JSON_BUILD_INFO="${HOME}/.local/opt/discord/resources/build_info.json"
-    INSTALLED_VER=$(jq -r '.version' "$JSON_BUILD_INFO")
-    if [[ "${INSTALLED_VER}" != "${LATEST_VERSION}" ]]; then
-        print_info
-    else
-        echo -e "Discord est déjà à jour !"
-        if command -v /usr/bin/notify-send > /dev/null ; then
-            notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
+    if [[ -f "${HOME}/.local/opt/discord/resources/build_info.json" ]]; then
+        INSTALLED_VER=$(jq -r '.version // empty' "${HOME}/.local/opt/discord/resources/build_info.json")
+        if [[ -z "$INSTALLED_VER" ]]; then
+            echo -e "❌ Impossible de récupérer la version installée."
+        elif [[ "${INSTALLED_VER}" != "${LATEST_VERSION}" ]]; then
+            print_info
+        else
+            echo -e "✅ Discord est déjà à jour !"
+            if command -v /usr/bin/notify-send > /dev/null ; then
+                notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
+            fi
+            exit 0
         fi
-        exit 0
+    else
+        echo -e "❌ Fichier build_info.json introuvable !"
     fi
 fi
+}
+
+print_info() {
+    local INSTALLED_VER=$(jq -r '.version // empty' "${HOME}/.local/opt/discord/resources/build_info.json")
+    if [[ -n "$LATEST_VERSION" ]]; then
+        echo -e "🖥️  Version actuelle installée  : ${INSTALLED_VER:-❌ Non installé}"
+        echo -e "✨ Dernière version de Discord : ${LATEST_VERSION}"
+        echo -e "📥 URL du fichier .deb    : ${DEB_URL}"
+        echo -e "📦 URL du fichier .tar.gz : ${TAR_URL}"
+    fi
 }
 
 check_internet() {
@@ -161,7 +167,7 @@ title() {
 echo -e "${violet}
     ___   __  ____________                      __
    /   | / / / /_  __/ __ \_________  _________/ /
-  / /| |/ / / / / / / / / / ___/ __ \/ ___/ __  /
+  / /| |/ / / / / / / / / ___/ __ \/ ___/ __  /
  / ___ / /_/ / / / / /_/ / /__/ /_/ / /  / /_/ /
 /_/  |_\____/ /_/  \____/\___/\____/_/   \____/
 ${nc}"
@@ -169,11 +175,11 @@ ${nc}"
 
 help() {
 echo -e "
-OPTIONS :
+    OPTIONS :
 
-    install     : Installe discord en userspace
-    uninstall   : Désinstalle discord et autocord
-"
+      install     : Installe Discord en userspace
+      uninstall   : Désinstalle Discord et AUTOcord
+      --help      : Affiche cette aide"
 }
 
 test_internet() {
