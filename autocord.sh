@@ -133,10 +133,7 @@ check_version() {
             elif [[ "${INSTALLED_VER}" != "${VERSION_LATEST}" ]]; then
                 print_info
             else
-                echo -e "✅ Discord est déjà à jour !"
-                if command -v /usr/bin/notify-send > /dev/null ; then
-                    notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
-                fi
+                echo -e "✅ Discord est déja à jour !"
                 exit 0
             fi
         else
@@ -186,6 +183,7 @@ help() {
 
           install     : Installe Discord en userspace
           uninstall   : Désinstalle Discord et AUTOcord
+          update      : Vérifie si une nouvelle version de Discord est disponible
           --help      : Affiche cette aide"
 }
 
@@ -303,6 +301,10 @@ case "${1}" in
         title
         local_uninstall
         echo -e "Désinstallation Terminée"
+        ;;
+    update)
+        # Vérification de la version
+        check_version
         ;;
     --help | *)
         # Affichage de l'aide
