@@ -1,150 +1,157 @@
 #!/bin/bash
 vars() {
-violet="\033[38;5;63m"
-blue="\033[0;34m"
-red="\033[0;31m"
-orange="\033[0;33m"
-green="\033[0;32m"
-nc="\033[0m"
-DISCORD_UPDATE_URL="https://discord.com/api/updates/stable?platform=linux"
-JSON_DATA=$(curl -s "$DISCORD_UPDATE_URL")
-JSON_SETTINGS=$HOME/.config/discord/settings.json
-LATEST_VERSION=$(echo "$JSON_DATA" | jq -r '.name')
-DEB_URL="https://discord.com/api/download/stable?platform=linux&format=deb"
-TAR_URL="https://discord.com/api/download/stable?platform=linux&format=tar.gz"
-INSTALL_DIR="$HOME/.local/opt/discord"
-BIN_DIR="$HOME/.local/bin"
-TEMP_DIR=$(mktemp -d)
-DESKTOP_FILE="$HOME/.local/share/applications/discord.desktop"
+    # Couleurs - préfixe 'CLR_' pour plus de clarté
+    readonly CLR_VIOLET="\033[38;5;63m"
+    readonly CLR_BLUE="\033[0;34m"
+    readonly CLR_RED="\033[0;31m"
+    readonly CLR_ORANGE="\033[0;33m"
+    readonly CLR_GREEN="\033[0;32m"
+    readonly CLR_RESET="\033[0m"
+
+    # URLs - préfixe 'URL_' pour les endpoints
+    readonly URL_DISCORD_API="https://discord.com/api"
+    readonly URL_DISCORD_UPDATE="${URL_DISCORD_API}/updates/stable?platform=linux"
+    readonly URL_DISCORD_DEB="${URL_DISCORD_API}/download/stable?platform=linux&format=deb"
+    readonly URL_DISCORD_TAR="${URL_DISCORD_API}/download/stable?platform=linux&format=tar.gz"
+
+    # Chemins - préfixe 'PATH_' pour les dossiers
+    readonly PATH_CONFIG="${HOME}/.config/discord"
+    readonly PATH_INSTALL="${HOME}/.local/opt/discord"
+    readonly PATH_BIN="${HOME}/.local/bin"
+    readonly PATH_DESKTOP="${HOME}/.local/share/applications/discord.desktop"
+    readonly PATH_SETTINGS="${PATH_CONFIG}/settings.json"
+    readonly PATH_TEMP="$(mktemp -d)"
+
+    # Versions
+    readonly JSON_DATA=$(curl -s "${URL_DISCORD_UPDATE}")
+    readonly VERSION_LATEST=$(echo "${JSON_DATA}" | jq -r '.name')
 }
 
 check_depends() {
-deps=("jq" "curl" "tar" "gzip" "pv" "notify-send")
-for _f in ${deps[@]} ; do
-    if ! command -v /usr/bin/${_f} > /dev/null ; then
-        echo -e "${red}Dépendances manquantes :${nc} ${_f}"
-        missdep="1"
+    deps=("jq" "curl" "tar" "gzip" "pv" "notify-send")
+    for _f in ${deps[@]} ; do
+        if ! command -v /usr/bin/${_f} > /dev/null ; then
+            echo -e "${CLR_RED}Dépendances manquantes :${CLR_RESET} ${_f}"
+            missdep="1"
+        fi
+    done
+
+    if [[ ${missdep} == "1" ]]; then
+        echo -e "${CLR_RED}Veuillez installer les dépendances manquantes et relancer le script${CLR_RESET}"
+        exit 1
     fi
-done
-
-if [[ ${missdep} == "1" ]]; then
-    echo -e "${red}Veuillez installer les dépendances manquantes et relancer le script${nc}"
-    exit 1
-fi
-
 }
 
 local_Skip_host_update() {
-local SEARCH_STRING='"SKIP_HOST_UPDATE": true,'
-if [[ -f "${JSON_SETTINGS}" ]]; then
-    if grep -q "${SEARCH_STRING}" "${JSON_SETTINGS}"; then
-        sed -i '1a\  "SKIP_HOST_UPDATE": true,' "${JSON_SETTINGS}"
+    local SEARCH_STRING='"SKIP_HOST_UPDATE": true,'
+    if [[ -f "${PATH_SETTINGS}" ]]; then
+        if grep -q "${SEARCH_STRING}" "${PATH_SETTINGS}"; then
+            sed -i '1a\  "SKIP_HOST_UPDATE": true,' "${PATH_SETTINGS}"
+        fi
+    else
+        mkdir "${HOME}/.config/discord/"
+        echo '{
+      "SKIP_HOST_UPDATE": true,
+      "IS_MAXIMIZED": false,
+      "IS_MINIMIZED": false,
+      "WINDOW_BOUNDS": {
+        "x": 235,
+        "y": 327,
+        "width": 2199,
+        "height": 923
+      },
+      "OPEN_ON_STARTUP": false,
+      "chromiumSwitches": {}
+    }' > "${PATH_SETTINGS}"
     fi
-else
-    mkdir "${HOME}/.config/discord/"
-    echo '{
-  "SKIP_HOST_UPDATE": true,
-  "IS_MAXIMIZED": false,
-  "IS_MINIMIZED": false,
-  "WINDOW_BOUNDS": {
-    "x": 235,
-    "y": 327,
-    "width": 2199,
-    "height": 923
-  },
-  "OPEN_ON_STARTUP": false,
-  "chromiumSwitches": {}
-}' > "${JSON_SETTINGS}"
-fi
 }
 
 local_install() {
-echo -e "Téléchargement de Discord..."
-curl -L "${TAR_URL}" --progress-bar -o "${TEMP_DIR}"/discord.tar.gz
-echo -e "Extraction de Discord..."
-#tar -xzf "${TEMP_DIR}/discord.tar.gz" -C "${TEMP_DIR}"
-pv "${TEMP_DIR}/discord.tar.gz" | tar -xzf - -C "${TEMP_DIR}"
+    echo -e "Téléchargement de Discord..."
+    curl -L "${URL_DISCORD_TAR}" --progress-bar -o "${PATH_TEMP}"/discord.tar.gz
+    echo -e "Extraction de Discord..."
+    #tar -xzf "${TEMP_DIR}/discord.tar.gz" -C "${TEMP_DIR}"
+    pv "${PATH_TEMP}/discord.tar.gz" | tar -xzf - -C "${PATH_TEMP}"
 
-if [[ -d "${INSTALL_DIR}" ]]; then
-    rm -r "${INSTALL_DIR}"
-fi
-mkdir -p "${INSTALL_DIR}"
-mv "${TEMP_DIR}/Discord"/* "${INSTALL_DIR}"
+    if [[ -d "${PATH_INSTALL}" ]]; then
+        rm -r "${PATH_INSTALL}"
+    fi
+    mkdir -p "${PATH_INSTALL}"
+    mv "${PATH_TEMP}/Discord"/* "${PATH_INSTALL}"
 
-# Créer un symlink pour l'exécutable
+    # Créer un symlink pour l'exécutable
+    echo -e "Création du lien symbolique pour l'exécutable..."
+    if [[ ! -f "${PATH_BIN}/discord" ]]; then
+        mkdir -p "${PATH_BIN}"
+        ln -sf "${PATH_INSTALL}/Discord" "${PATH_BIN}/discord"
+    fi
 
-echo -e "Création du lien symbolique pour l'exécutable..."
-if [[ ! -f "${BIN_DIR}/discord" ]]; then
-    mkdir -p "${BIN_DIR}"
-    ln -sf "${INSTALL_DIR}/Discord" "${BIN_DIR}/discord"
-fi
-
-# Créer un fichier .desktop pour l'intégration avec l'environnement de bureau
-if [[ ! -f "${DESKTOP_FILE}" ]]; then
-mkdir -p "${HOME}/.local/share/applications"
-echo -e "Création du fichier .desktop..."
-cat > "${DESKTOP_FILE}" <<EOF
+    # Créer un fichier .desktop pour l'intégration avec l'environnement de bureau
+    if [[ ! -f "${PATH_DESKTOP}" ]]; then
+    mkdir -p "${HOME}/.local/share/applications"
+    echo -e "Création du fichier .desktop..."
+cat > "${PATH_DESKTOP}" <<EOF
 [Desktop Entry]
 Name=Discord
 StartupWMClass=discord
 Comment=All-in-one voice and text chat for gamers that's free, secure, and works on both your desktop and phone.
 GenericName=Internet Messenger
-Exec=${BIN_DIR}/discord
-Icon=${INSTALL_DIR}/discord.png
+Exec=${PATH_BIN}/discord
+Icon=${PATH_INSTALL}/discord.png
 Terminal=false
 Type=Application
 Categories=Network;InstantMessaging;
 Path=${HOME}/.local/bin
 EOF
 
-# Ajouter les permissions nécessaires au fichier .desktop
-chmod +x "${DESKTOP_FILE}"
-fi
+    # Ajouter les permissions nécessaires au fichier .desktop
+    chmod +x "${PATH_DESKTOP}"
+    fi
 
-# Nettoyer les fichiers temporaires
-rm -rf "${TEMP_DIR}"
+    # Nettoyer les fichiers temporaires
+    rm -rf "${PATH_TEMP}"
 
-# Afficher un message de succès
-echo -e "Discord a été installé avec succès dans l'espace utilisateur"
-. "${HOME}/.bashrc"
+    # Afficher un message de succès
+    echo -e "Discord a été installé avec succès dans l'espace utilisateur"
+    . "${HOME}/.bashrc"
 }
 
 local_uninstall() {
-echo -e "Désinstallation de Discord et Autocord..."
-rm "${BIN_DIR}"/discord
-rm "${BIN_DIR}"/autocord
-rm -r "${INSTALL_DIR}"
-rm "${DESKTOP_FILE}"
+    echo -e "Désinstallation de Discord et Autocord..."
+    rm "${PATH_BIN}"/discord
+    rm "${PATH_BIN}"/autocord
+    rm -r "${PATH_INSTALL}"
+    rm "${PATH_DESKTOP}"
 }
 
 check_version() {
-if [[ -f "${BIN_DIR}/discord" ]]; then
-    if [[ -f "${HOME}/.local/opt/discord/resources/build_info.json" ]]; then
-        INSTALLED_VER=$(jq -r '.version // empty' "${HOME}/.local/opt/discord/resources/build_info.json")
-        if [[ -z "$INSTALLED_VER" ]]; then
-            echo -e "❌ Impossible de récupérer la version installée."
-        elif [[ "${INSTALLED_VER}" != "${LATEST_VERSION}" ]]; then
-            print_info
-        else
-            echo -e "✅ Discord est déjà à jour !"
-            if command -v /usr/bin/notify-send > /dev/null ; then
-                notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
+    if [[ -f "${PATH_BIN}/discord" ]]; then
+        if [[ -f "${HOME}/.local/opt/discord/resources/build_info.json" ]]; then
+            INSTALLED_VER=$(jq -r '.version // empty' "${HOME}/.local/opt/discord/resources/build_info.json")
+            if [[ -z "$INSTALLED_VER" ]]; then
+                echo -e "❌ Impossible de récupérer la version installée."
+            elif [[ "${INSTALLED_VER}" != "${VERSION_LATEST}" ]]; then
+                print_info
+            else
+                echo -e "✅ Discord est déjà à jour !"
+                if command -v /usr/bin/notify-send > /dev/null ; then
+                    notify-send --app-name "AUTOcord" "Discord est déjà à jour !"
+                fi
+                exit 0
             fi
-            exit 0
+        else
+            echo -e "❌ Fichier build_info.json introuvable !"
         fi
-    else
-        echo -e "❌ Fichier build_info.json introuvable !"
     fi
-fi
 }
 
 print_info() {
     local INSTALLED_VER=$(jq -r '.version // empty' "${HOME}/.local/opt/discord/resources/build_info.json")
-    if [[ -n "$LATEST_VERSION" ]]; then
+    if [[ -n "$VERSION_LATEST" ]]; then
         echo -e "🖥️  Version actuelle installée  : ${INSTALLED_VER:-❌ Non installé}"
-        echo -e "✨ Dernière version de Discord : ${LATEST_VERSION}"
-        echo -e "📥 URL du fichier .deb    : ${DEB_URL}"
-        echo -e "📦 URL du fichier .tar.gz : ${TAR_URL}"
+        echo -e "✨ Dernière version de Discord : ${VERSION_LATEST}"
+        echo -e "📥 URL du fichier .deb    : ${URL_DISCORD_DEB}"
+        echo -e "📦 URL du fichier .tar.gz : ${URL_DISCORD_TAR}"
     fi
 }
 
@@ -157,74 +164,139 @@ check_internet() {
 }
 
 check_root() {
-if [[ $EUID -eq 0 ]]; then
-    echo -e "${red}NE PAS LANCER LE SCRIPT EN TANT QUE ROOT${nc}"
-    exit 1
-fi
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${CLR_RED}NE PAS LANCER LE SCRIPT EN TANT QUE ROOT${CLR_RESET}"
+        exit 1
+    fi
 }
 
 title() {
-echo -e "${violet}
-    ___   __  ____________                      __
-   /   | / / / /_  __/ __ \_________  _________/ /
-  / /| |/ / / / / / / / / ___/ __ \/ ___/ __  /
- / ___ / /_/ / / / / /_/ / /__/ /_/ / /  / /_/ /
-/_/  |_\____/ /_/  \____/\___/\____/_/   \____/
-${nc}"
+    echo -e "${CLR_VIOLET}
+        ___   __  ____________                      __
+       /   | / / / /_  __/ __ \_________  _________/ /
+      / /| |/ / / / / / / / / ___/ __ \/ ___/ __  /
+     / ___ / /_/ / / / / /_/ / /__/ /_/ / /  / /_/ /
+    /_/  |_\____/ /_/  \____/\___/\____/_/   \____/
+    ${CLR_RESET}"
 }
 
 help() {
-echo -e "
-    OPTIONS :
+    echo -e "
+        OPTIONS :
 
-      install     : Installe Discord en userspace
-      uninstall   : Désinstalle Discord et AUTOcord
-      --help      : Affiche cette aide"
+          install     : Installe Discord en userspace
+          uninstall   : Désinstalle Discord et AUTOcord
+          --help      : Affiche cette aide"
 }
 
 test_internet() {
-local MAX_TIME=600
-local START_TIME=$(date +%s)
+    local MAX_TIME=600
+    local START_TIME=$(date +%s)
 
-while ! check_internet; do
-    ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
+    while ! check_internet; do
+        ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
 
-    if [ $ELAPSED_TIME -ge $MAX_TIME ]; then
-        echo "Temps écoulé de 10 minutes sans connexion Internet. Arrêt du script."
-        exit 1
+        if [ $ELAPSED_TIME -ge $MAX_TIME ]; then
+            echo "Temps écoulé de 10 minutes sans connexion Internet. Arrêt du script."
+            exit 1
+        fi
+        echo "Pas de connexion Internet. Nouvelle tentative dans 5 secondes..."
+        sleep 30
+    done
+}
+
+# Fonction pour gérer l'installation
+install_discord() {
+    # Vérifications préliminaires
+    run_pre_install_checks
+    
+    # Notification de début d'installation
+    send_notification "Discord ${VERSION_LATEST} disponible ! Installation en cours..."
+    
+    # Installation principale
+    download_and_extract_discord
+    setup_discord_directories
+    create_symlinks_and_desktop_file
+    local_Skip_host_update
+    
+    # Notification de fin
+    send_notification "Installation de Discord ${VERSION_LATEST} terminée !"
+    echo -e "Installation Terminée"
+}
+
+# Fonctions auxiliaires d'installation
+run_pre_install_checks() {
+    test_internet
+    check_depends
+    vars
+    title
+    check_root
+    check_version
+}
+
+download_and_extract_discord() {
+    echo -e "Téléchargement de Discord..."
+    curl -L "${URL_DISCORD_TAR}" --progress-bar -o "${PATH_TEMP}"/discord.tar.gz
+    echo -e "Extraction de Discord..."
+    pv "${PATH_TEMP}/discord.tar.gz" | tar -xzf - -C "${PATH_TEMP}"
+}
+
+setup_discord_directories() {
+    if [[ -d "${PATH_INSTALL}" ]]; then
+        rm -r "${PATH_INSTALL}"
     fi
-    echo "Pas de connexion Internet. Nouvelle tentative dans 5 secondes..."
-    sleep 30
-done
+    mkdir -p "${PATH_INSTALL}"
+    mv "${PATH_TEMP}/Discord"/* "${PATH_INSTALL}"
+}
+
+create_symlinks_and_desktop_file() {
+    # Création du lien symbolique
+    echo -e "Création du lien symbolique pour l'exécutable..."
+    if [[ ! -f "${PATH_BIN}/discord" ]]; then
+        mkdir -p "${PATH_BIN}"
+        ln -sf "${PATH_INSTALL}/Discord" "${PATH_BIN}/discord"
+    fi
+
+    create_desktop_file
+    rm -rf "${PATH_TEMP}"
+}
+
+create_desktop_file() {
+    if [[ ! -f "${PATH_DESKTOP}" ]]; then
+        mkdir -p "${HOME}/.local/share/applications"
+        echo -e "Création du fichier .desktop..."
+        generate_desktop_file_content > "${PATH_DESKTOP}"
+        chmod +x "${PATH_DESKTOP}"
+    fi
+}
+
+generate_desktop_file_content() {
+    cat <<EOF
+[Desktop Entry]
+Name=Discord
+StartupWMClass=discord
+Comment=All-in-one voice and text chat for gamers that's free, secure, and works on both your desktop and phone.
+GenericName=Internet Messenger
+Exec=${PATH_BIN}/discord
+Icon=${PATH_INSTALL}/discord.png
+Terminal=false
+Type=Application
+Categories=Network;InstantMessaging;
+Path=${HOME}/.local/bin
+EOF
+}
+
+send_notification() {
+    local message="$1"
+    if command -v /usr/bin/notify-send > /dev/null; then
+        notify-send --app-name "AUTOcord" "$message"
+    fi
 }
 
 case "${1}" in
     install)
-        # Vérifications et initialisation
-        test_internet
-        check_depends
-        vars
-        title
-        check_root
-        check_version
-
-        # Notification de début d'installation
-        if command -v /usr/bin/notify-send > /dev/null; then
-            notify-send --app-name "AUTOcord" "Discord ${LATEST_VERSION} disponible ! Installation en cours..."
-        fi
-
-        # Installation
-        local_install
-        local_Skip_host_update
-
-        # Notification de fin d'installation
-        if command -v /usr/bin/notify-send > /dev/null; then
-            notify-send --app-name "AUTOcord" "Installation de Discord ${LATEST_VERSION} terminée !"
-        fi
-
-        echo -e "Installation Terminée"
+        install_discord
         ;;
-
     uninstall)
         # Désinstallation
         vars
@@ -232,7 +304,6 @@ case "${1}" in
         local_uninstall
         echo -e "Désinstallation Terminée"
         ;;
-
     --help | *)
         # Affichage de l'aide
         check_depends
