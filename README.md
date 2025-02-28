@@ -4,7 +4,7 @@ Autocord is a tool to easily install and update Discord on your system.
 ## Installation
 To install Autocord, run the following commands:
 ```bash
-git clone https://github.com/Xdavius/autocord.git
+git clone https://github.com/medaey/autocord.git
 cd autocord
 ./install.sh
 ```
@@ -30,3 +30,6 @@ Make sure these tools are installed on your system. For example, on Ubuntu/Debia
 sudo apt update
 sudo apt install jq curl tar gzip pv
 ```
+
+## Author
+- Xdavius
